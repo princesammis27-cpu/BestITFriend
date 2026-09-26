@@ -1,13 +1,24 @@
 [build]
+  # The directory where Netlify will look for your serverless functions
   functions = "functions"
-  publish = "."  # Points to root if your index.html is loose in the root directory
+  
+  # Tells Netlify your frontend index.html is loose in the root folder
+  publish = "."
 
 [functions]
-  node_bundle = true
+  # This tells Netlify to automatically bundle all your dependencies (like express, pg)
+  # using the correct modern syntax
+  included_files = ["node_modules/**"]
 
-# The magic redirect that turns the 404s into 200 successes
+# REDIRECT RULE: Forwards frontend API calls seamlessly to your Express application instance
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
   force = true
+
+# Catch-all rule for your index.html page routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
