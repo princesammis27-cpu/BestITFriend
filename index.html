@@ -528,8 +528,8 @@ footer{border-top:1px solid #121226;padding:13px;text-align:center;margin-top:26
 <script>
 // ── SUPABASE CONFIG ──
 // Replace these with YOUR Supabase project values from supabase.com → Project Settings → API
-const SUPABASE_URL  = "YOUR_SUPABASE_URL";   // e.g. https://xyzabcdef.supabase.co
-const SUPABASE_ANON = "YOUR_SUPABASE_ANON_KEY"; // long eyJ... key
+const SUPABASE_URL  = "https://pseraeiwuavwdkegilsn.supabase.co";   // e.g. https://xyzabcdef.supabase.co
+const SUPABASE_ANON = "sb_publishable_nVFp51hF_BLK3VfLMEyHwg_OWNSJz5u"; // long eyJ... key
 var _supabase = null;
 function getSupabase() {
   if (!_supabase) {
@@ -1069,7 +1069,7 @@ async function clearTr(cat,sub){if(!confirm("Clear ALL deleted files in "+cat+"?
 // ── DOWNLOAD (Premium-gated, Daraja STK Push, backend-verified) ──
 // IMPORTANT: Daraja Consumer Key/Secret are NEVER stored in this HTML — they live only
 // as environment variables on the Node backend. Set the deployed backend URL below.
-var MPESA_API_BASE = window.MPESA_API_BASE || "https://YOUR-BACKEND-DOMAIN.example";
+var MPESA_API_BASE = window.MPESA_API_BASE || "https://bestitfriendonlinesales.netlify.app/";
 var _pendingDlId=null;
 
 function normalizeKenyanPhone(v){
