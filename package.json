@@ -2,7 +2,7 @@
   "name": "princesammis-daraja-backend",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
