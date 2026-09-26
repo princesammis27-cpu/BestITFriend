@@ -1,0 +1,13 @@
+[build]
+  functions = "functions"
+  publish = "."  # Points to root if your index.html is loose in the root directory
+
+[functions]
+  node_bundle = true
+
+# The magic redirect that turns the 404s into 200 successes
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+  force = true
