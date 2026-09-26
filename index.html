@@ -528,15 +528,16 @@ footer{border-top:1px solid #121226;padding:13px;text-align:center;margin-top:26
 <script>
 // ── SUPABASE CONFIG ──
 // Replace these with YOUR Supabase project values from supabase.com → Project Settings → API
-const SUPABASE_URL  = "https://pseraeiwuavwdkegilsn.supabase.co";   // e.g. https://xyzabcdef.supabase.co
-const SUPABASE_ANON = "sb_publishable_nVFp51hF_BLK3VfLMEyHwg_OWNSJz5u"; // long eyJ... key
+// Database connections are now securely handled by the Netlify backend server.
+const SUPABASE_URL  = "";   
+const SUPABASE_ANON = ""; 
 var _supabase = null;
+
 function getSupabase() {
-  if (!_supabase) {
-    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-  }
-  return _supabase;
+  // Bypassed: This file now calls your Netlify /api endpoints instead.
+  return null;
 }
+
 
 // ── WebView detection ──
 function isInWebView() {
