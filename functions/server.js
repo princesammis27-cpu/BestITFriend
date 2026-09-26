@@ -3,9 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import pg from "pg";
 import { fileURLToPath } from "url";
-
-// 1. IMPORT THE SEPARATE SUPABASE CLIENT INTRODUCED PREVIOUSLY
-import { supabase } from "./utils/supabaseClient.js";
+import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
 const { Pool } = pg;
@@ -14,6 +12,15 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
+// Initialize Supabase Client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn("⚠️ Warning: Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables.");
+}
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 // SERVERLESS DATABASE POOL CONFIGURATION
 let pool;
 if (!pool) {
@@ -21,18 +28,18 @@ if (!pool) {
     connectionString: process.env.DATABASE_URL,
     max: 1, // Single connection per warm serverless invocation to protect Supabase limits
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutTimeoutMillis: 2000,
   });
 }
 
-// Daraja base URL — sandbox by default. Set MPESA_ENV=production in production [1]
+// Daraja base URL — sandbox by default. Set MPESA_ENV=production in production
 const DARAJA_BASE =
   process.env.MPESA_BASE_URL || 
   (process.env.MPESA_ENV === "production"
     ? "https://safaricom.co.ke"
     : "https://safaricom.co.ke");
 
-// PREMIUM PLAN PRICING — The immutable server source of truth [1]
+// PREMIUM PLAN PRICING — The immutable server source of truth
 const PLAN_PRICES = { day: 200, week: 500, month: 1000 };
 
 function required(name) {
@@ -80,7 +87,7 @@ async function getAccessToken() {
   return d.access_token;
 }
 
-// System Health Endpoint [1]
+// System Health Endpoint
 app.get("/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -91,7 +98,7 @@ app.get("/health", async (_req, res) => {
   }
 });
 
-// TEST ENDPOINT: Demonstrates how your imported 'supabase' instance securely runs
+// TEST ENDPOINT: Verifies connectivity to your database
 app.get("/api/supabase-test", async (req, res) => {
   try {
     const { data, error } = await supabase.from("mpesa_transactions").select("*").limit(5);
@@ -102,7 +109,7 @@ app.get("/api/supabase-test", async (req, res) => {
   }
 });
 
-// Initiate M-Pesa STK Push Payment Request [1]
+// Initiate M-Pesa STK Push Payment Request
 app.post("/api/mpesa/stk-push", async (req, res) => {
   try {
     const productId = String(req.body.productId || "").trim();
@@ -167,7 +174,7 @@ app.post("/api/mpesa/stk-push", async (req, res) => {
   }
 });
 
-// Check payment transaction status using polling [1]
+// Check payment transaction status using polling
 app.get("/api/mpesa/status/:checkoutRequestId", async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -192,7 +199,7 @@ app.get("/api/mpesa/status/:checkoutRequestId", async (req, res) => {
   }
 });
 
-// Check if a client phone number currently has active Premium Access [1]
+// Check if a client phone number currently has active Premium Access
 app.get("/api/mpesa/premium-status", async (req, res) => {
   try {
     const phone = normalizePhone(req.query.phone);
@@ -218,7 +225,7 @@ app.get("/api/mpesa/premium-status", async (req, res) => {
   }
 });
 
-// Secure automated Callback URL Webhook receiving data from Safaricom Daraja [1]
+// Secure automated Callback URL Webhook receiving data from Safaricom Daraja
 app.post("/api/mpesa/callback", async (req, res) => {
   try {
     const cb = req.body?.Body?.stkCallback;
@@ -234,7 +241,6 @@ app.post("/api/mpesa/callback", async (req, res) => {
     }
     const status = code === 0 ? "success" : "failed";
 
-    // Convert object payload to pure JSON string for target driver parsing stability
     const rawCallbackString = JSON.stringify(req.body);
 
     await pool.query(
@@ -261,14 +267,14 @@ app.post("/api/mpesa/callback", async (req, res) => {
   }
 });
 
-// Environment evaluation safety loop for platform runners [1]
+// Environment evaluation safety loop for platform runners
 try {
   if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const port = process.env.PORT || 3000;
     app.listen(port, () => console.log(`Daraja backend listening on :${port}`));
   }
 } catch (err) {
-  // Gracefully handle serverless environments omitting file URLs
+  // Gracefully handle serverless environments
 }
 
 export default app;
