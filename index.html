@@ -1034,9 +1034,13 @@ function startPing(){if(ST.ptimer)clearInterval(ST.ptimer);ST.ptimer=setInterval
 // NOT carried over; it's only ever safe for a purely local, single-device
 // store, not once accounts live in a shared database.
 async function doSignup() {
-  clearErr();
-  
-  // 1. Get field values using the exact IDs from your form
+  // Clear any existing error message cleanly
+  const errEl = document.getElementById("aErr");
+  if (errEl) {
+    errEl.textContent = "";
+    errEl.style.display = "none";
+  }
+
   const usernameInput = document.getElementById("suU");
   const emailInput = document.getElementById("suE");
   const passwordInput = document.getElementById("suP");
@@ -1045,22 +1049,39 @@ async function doSignup() {
   const email = emailInput ? emailInput.value.trim() : "";
   const password = passwordInput ? passwordInput.value : "";
 
-  // 2. Client-side Validation
+  // Validation
   if (!username || !email || !password) {
-    showErr("Please fill in all fields (Username, Email, and Password).");
+    if (errEl) {
+      errEl.innerHTML = "⚠️ Please fill in all fields (Username, Email, and Password).";
+      errEl.style.display = "block";
+    }
+    return;
+  }
+
+  // Basic email syntax check
+  if (!email.includes("@") || !email.includes(".")) {
+    if (errEl) {
+      errEl.innerHTML = "⚠️ Please enter a valid email address (e.g., name@example.com).";
+      errEl.style.display = "block";
+    }
     return;
   }
 
   if (password.length < 8) {
-    showErr("Password must be at least 8 characters long.");
+    if (errEl) {
+      errEl.innerHTML = "⚠️ Password must be at least 8 characters long.";
+      errEl.style.display = "block";
+    }
     return;
   }
 
-  // 3. Call Supabase Auth
   try {
     const sb = getSupabase();
     if (!sb) {
-      showErr("Supabase client failed to initialize.");
+      if (errEl) {
+        errEl.innerHTML = "⚠️ Supabase client failed to initialize.";
+        errEl.style.display = "block";
+      }
       return;
     }
 
@@ -1076,29 +1097,29 @@ async function doSignup() {
     });
 
     if (error) {
-      showErr(error.message);
+      if (errEl) {
+        errEl.innerHTML = "⚠️ " + error.message;
+        errEl.style.display = "block";
+      }
       return;
     }
 
-    // 4. Handle Successful Creation
     if (data?.user) {
-      // If email confirmation is disabled in Supabase, auto-login or switch tab
       if (data.session) {
         alert("Account created successfully!");
-        if (typeof showPage === 'function') {
-          showPage('pgHome');
-        } else {
-          document.getElementById("pgLog")?.classList.remove("on");
-          document.getElementById("pgHome")?.classList.add("on");
-        }
+        document.getElementById("pgLog")?.classList.remove("on");
+        document.getElementById("pgHome")?.classList.add("on");
       } else {
-        alert("Signup successful! Please check your email to confirm your account before logging in.");
+        alert("Signup successful! Please check your email to confirm your account.");
         if (typeof authTab === 'function') authTab('li');
       }
     }
   } catch (err) {
     console.error("Signup exception:", err);
-    showErr("An unexpected error occurred: " + (err.message || err));
+    if (errEl) {
+      errEl.innerHTML = "⚠️ An unexpected error occurred: " + (err.message || err);
+      errEl.style.display = "block";
+    }
   }
 }
 async function doLogin(){
