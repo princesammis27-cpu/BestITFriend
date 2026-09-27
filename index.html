@@ -1035,39 +1035,70 @@ function startPing(){if(ST.ptimer)clearInterval(ST.ptimer);ST.ptimer=setInterval
 // store, not once accounts live in a shared database.
 async function doSignup() {
   clearErr();
-  const username = document.getElementById("suU").value.trim();
-  const email = document.getElementById("suE").value.trim();
-  const password = document.getElementById("suP").value;
+  
+  // 1. Get field values using the exact IDs from your form
+  const usernameInput = document.getElementById("suU");
+  const emailInput = document.getElementById("suE");
+  const passwordInput = document.getElementById("suP");
 
+  const username = usernameInput ? usernameInput.value.trim() : "";
+  const email = emailInput ? emailInput.value.trim() : "";
+  const password = passwordInput ? passwordInput.value : "";
+
+  // 2. Client-side Validation
   if (!username || !email || !password) {
-    showErr("Please fill in all fields.");
+    showErr("Please fill in all fields (Username, Email, and Password).");
     return;
   }
 
   if (password.length < 8) {
-    showErr("Password must be at least 8 characters.");
+    showErr("Password must be at least 8 characters long.");
     return;
   }
 
-  const sb = getSupabase();
-  const { data, error } = await sb.auth.signUp({
-    email: email,
-    password: password,
-    options: {
-      data: {
-        full_name: username
+  // 3. Call Supabase Auth
+  try {
+    const sb = getSupabase();
+    if (!sb) {
+      showErr("Supabase client failed to initialize.");
+      return;
+    }
+
+    const { data, error } = await sb.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          display_name: username,
+          username: username
+        }
+      }
+    });
+
+    if (error) {
+      showErr(error.message);
+      return;
+    }
+
+    // 4. Handle Successful Creation
+    if (data?.user) {
+      // If email confirmation is disabled in Supabase, auto-login or switch tab
+      if (data.session) {
+        alert("Account created successfully!");
+        if (typeof showPage === 'function') {
+          showPage('pgHome');
+        } else {
+          document.getElementById("pgLog")?.classList.remove("on");
+          document.getElementById("pgHome")?.classList.add("on");
+        }
+      } else {
+        alert("Signup successful! Please check your email to confirm your account before logging in.");
+        if (typeof authTab === 'function') authTab('li');
       }
     }
-  });
-
-  if (error) {
-    showErr(error.message);
-    return;
-  }
-
-  if (data.user) {
-    alert("Signup successful! Check your email for verification if required, or log in.");
-    authTab('li');
+  } catch (err) {
+    console.error("Signup exception:", err);
+    showErr("An unexpected error occurred: " + (err.message || err));
   }
 }
 async function doLogin(){
