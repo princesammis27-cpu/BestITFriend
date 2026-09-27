@@ -538,13 +538,10 @@ footer{border-top:1px solid #121226;padding:13px;text-align:center;margin-top:26
 <!-- Supabase SDK (replaces Firebase) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── SUPABASE CONFIG ──
-// Replace these with YOUR Supabase project values from supabase.com → Project Settings → API
-// Safely hardcoding public client tokens is perfectly acceptable
 const SUPABASE_URL  = "https://pseraeiwuavwdkegilsn.supabase.co";   
 const SUPABASE_ANON = "sb_publishable_nVFp51hF_BLK3VfLMEyHwg_OWNSJz5u"; 
 
-var _supabase = null;
+let _supabase = null;
 function getSupabase() {
   if (!_supabase) {
     _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -552,97 +549,129 @@ function getSupabase() {
   return _supabase;
 }
 
-
-// ── WebView detection ──
-function isInWebView() {
-  var ua = navigator.userAgent || "";
-  return /FBAN|FBAV|Instagram|Twitter|Line|WhatsApp|Telegram|WebView|wv/.test(ua) ||
-    (ua.includes("Android") && !ua.includes("Chrome/")) ||
-    window.ReactNativeWebView !== undefined;
+function showErr(msg) {
+  const el = document.getElementById("aErr");
+  if (el) {
+    el.innerHTML = "⚠️ " + msg;
+    el.style.display = "block";
+  }
 }
 
-// ── GOOGLE SIGN-IN via Supabase OAuth ──
-async function signInWithGoogle() {
-  if (isInWebView()) {
-    document.getElementById("aErr").innerHTML =
-      '⚠️ Google Sign-In requires Chrome or Safari.<br>' +
-      '<b>Tap the ⋮ menu → "Open in browser"</b> and try again.';
-    document.getElementById("aErr").style.display = "block";
+function clearErr() {
+  const el = document.getElementById("aErr");
+  if (el) {
+    el.textContent = "";
+    el.style.display = "none";
+  }
+}
+
+function authTab(type) {
+  clearErr();
+  if (type === 'li') {
+    document.getElementById("liF").style.display = "block";
+    document.getElementById("suF").style.display = "none";
+    document.getElementById("atli").classList.add("on");
+    document.getElementById("atsu").classList.remove("on");
+  } else {
+    document.getElementById("liF").style.display = "none";
+    document.getElementById("suF").style.display = "block";
+    document.getElementById("atsu").classList.add("on");
+    document.getElementById("atli").classList.remove("on");
+  }
+}
+
+function togglePw(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === "password") {
+    input.type = "text";
+    btn.textContent = "🙈";
+  } else {
+    input.type = "password";
+    btn.textContent = "👁";
+  }
+}
+
+async function doSignup() {
+  clearErr();
+  const username = document.getElementById("suU").value.trim();
+  const email = document.getElementById("suE").value.trim();
+  const password = document.getElementById("suP").value;
+
+  if (!username || !email || !password) {
+    showErr("Please fill in all fields.");
     return;
   }
-  var sb = getSupabase();
-  var { error } = await sb.auth.signInWithOAuth({
+
+  if (password.length < 8) {
+    showErr("Password must be at least 8 characters.");
+    return;
+  }
+
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        full_name: username
+      }
+    }
+  });
+
+  if (error) {
+    showErr(error.message);
+    return;
+  }
+
+  if (data.user) {
+    alert("Signup successful! Check your email for verification if required, or log in.");
+    authTab('li');
+  }
+}
+
+async function doLogin() {
+  clearErr();
+  const email = document.getElementById("liE").value.trim();
+  const password = document.getElementById("liP").value;
+
+  if (!email || !password) {
+    showErr("Please enter both email and password.");
+    return;
+  }
+
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    showErr(error.message);
+    return;
+  }
+
+  if (data.session) {
+    document.getElementById("pgLog").classList.remove("on");
+    document.getElementById("pgHome").classList.add("on");
+    document.getElementById("topbar").style.display = "flex";
+  }
+}
+
+async function signInWithGoogle() {
+  clearErr();
+  const sb = getSupabase();
+  const { error } = await sb.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo: window.location.origin + window.location.pathname }
   });
   if (error) {
-    var el = document.getElementById("aErr");
-    if (el) { el.textContent = "⚠️ " + error.message; el.style.display = "block"; }
+    showErr(error.message);
   }
 }
 
-// ── Handle OAuth redirect callback ──
-async function handleSupabaseAuthRedirect() {
-  var sb = getSupabase();
-  var { data: { session }, error } = await sb.auth.getSession();
-  if (error) { console.warn("Supabase session error:", error.message); return false; }
-  if (session && session.user) {
-    await saveGoogleUser(session.user);
-    return true;
-  }
-  // Listen for auth state changes (handles redirect return)
-  sb.auth.onAuthStateChange(async function(event, session) {
-    if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session && session.user && !ST.user) {
-      await saveGoogleUser(session.user);
-      var splash = document.getElementById("pgSpl");
-      if (splash && splash.classList.contains("on")) {
-        splash.classList.remove("on");
-        go("pgHome", false);
-        chipRefresh();
-      }
-    }
-  });
-  return false;
-}
-
-// ── Save Google user into local IndexedDB (same logic, same stores) ──
-async function saveGoogleUser(authUser) {
-  var email       = authUser.email;
-  var displayName = authUser.user_metadata && authUser.user_metadata.full_name
-                    ? authUser.user_metadata.full_name
-                    : (authUser.email ? authUser.email.split("@")[0] : "User");
-  var photoURL    = (authUser.user_metadata && authUser.user_metadata.avatar_url)
-                    ? authUser.user_metadata.avatar_url : "";
-  var existing    = await dbGet("users", email);
-  var user = existing || {
-    email: email, username: displayName,
-    joined: new Date().toLocaleDateString(), avatar: ""
-  };
-  if (!user.avatar && photoURL) {
-    try {
-      var res = await fetch(photoURL);
-      var blob = await res.blob();
-      var dataUrl = await new Promise(function(resolve) {
-        var r = new FileReader();
-        r.onload = function(e) { resolve(e.target.result); };
-        r.readAsDataURL(blob);
-      });
-      user.avatar = await uploadDataUrl(dataUrl, "avatars", email + ".jpg");
-    } catch(e) { user.avatar = ""; }
-  }
-  user.username = displayName;
-  // Use the Supabase-issued JWT as our API bearer token too, so the backend
-  // can verify Google-authenticated requests the same way it verifies
-  // email/password ones (it must accept/validate both).
-  try {
-    var sess = (await getSupabase().auth.getSession()).data.session;
-    setAuth(sess && sess.access_token, email);
-  } catch (e) { setAuth(null, email); }
-  await dbPut("users", user);
-  ST.user  = user;
-  ST.isAdm = (user.email === "juliusmwero900@gmail.com" || user.username === CFG.au);
-  afterAuth();
-}
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById("pgLog").classList.add("on");
+});
 </script>
 
 </head>
