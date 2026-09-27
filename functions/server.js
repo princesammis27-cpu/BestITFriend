@@ -277,5 +277,28 @@ try {
 } catch (err) {
   // Gracefully handle serverless environments
 }
+// Secure backend email auth handler route
+app.post("/api/auth/signin", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: "Email and password are required." });
+    }
+
+    // Connects safely through your server's master instance 
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) throw error;
+
+    // Send back session tokens to client browser
+    res.json({ success: true, user: data.user, token: data.session.access_token });
+  } catch (e) {
+    res.status(400).json({ success: false, error: e.message });
+  }
+});
 
 export default app;
