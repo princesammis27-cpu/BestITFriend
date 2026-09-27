@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#d4af37">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PNF Enterprises">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>BestITFriend Online Sales</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:Georgia,serif;background:#0d0d1a;color:#f0e6c8;min-height:100vh;overflow-x:hidden;font-size:15px}
+img{max-width:100%}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#d4af37;border-radius:2px}
+
+.pg{display:none;min-height:100vh}
+.pg.on{display:block}
+#pgHome.on{background:#0a0e1a}
+#pgSpl.on{display:flex}
+#pgLog.on{display:flex}
+
+#ld{position:fixed;bottom:14px;right:14px;background:rgba(10,10,28,.94);border:1px solid #d4af37;border-radius:22px;padding:7px 13px;display:none;align-items:center;gap:7px;z-index:9000;pointer-events:none}
+#ld.on{display:flex}
+.spin{width:13px;height:13px;border:2px solid rgba(212,175,55,.2);border-top-color:#d4af37;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.pw-wrap{position:relative;width:100%}
+.pw-wrap .fi{width:100%;padding-right:42px;box-sizing:border-box}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#666;font-size:16px;padding:0;line-height:1;z-index:2}
+.pw-eye:hover{color:#d4af37}
+
+#toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:22px;font-size:13px;color:#fff;display:none;z-index:8999;max-width:88vw;text-align:center;transition:opacity .4s;pointer-events:none}
+
+#pgSpl{background:linear-gradient(135deg,#060612,#180e40,#060612);align-items:center;justify-content:center;flex-direction:column;position:fixed;inset:0;z-index:8900}
+.sp-ico{font-size:68px;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.sp-t{font-size:20px;color:#d4af37;font-weight:bold;margin:14px 0 4px;letter-spacing:2px}
+.sp-s{font-size:10px;color:#555;letter-spacing:4px}
+.sp-bar{width:180px;height:3px;background:rgba(212,175,55,.14);border-radius:2px;margin-top:22px;overflow:hidden}
+.sp-fill{height:100%;background:#d4af37;border-radius:2px;animation:spf 2.2s ease forwards}
+@keyframes spf{0%{width:0}80%{width:88%}100%{width:100%}}
+
+#topbar{display:none;background:#000;border-bottom:2px solid #d4af37;padding:8px 12px;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:800}
+.br{display:flex;align-items:center;gap:7px}
+#bkBtn{display:none;background:rgba(212,175,55,.1);border:1px solid #d4af37;color:#d4af37;font-size:12px;border-radius:18px;padding:5px 11px;cursor:pointer;font-family:Georgia,serif;font-weight:bold;white-space:nowrap}
+.bname{font-size:12px;font-weight:bold;color:#d4af37;line-height:1.2}
+.bname span{color:#7c4dff}
+.btag{font-size:8px;color:#555;letter-spacing:2px}
+.nav{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.nb{background:transparent;color:#888;border:1px solid #2a2a2a;border-radius:8px;padding:7px 10px;cursor:pointer;font-family:Georgia,serif;font-size:19px;line-height:1;transition:.2s;white-space:nowrap}
+.nb.txt{font-size:13px}
+
+#pgLog{background:linear-gradient(135deg,#060612,#120c2c,#060612);align-items:center;justify-content:center;padding:20px}
+.lbox{background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.22);border-radius:15px;padding:24px 18px;max-width:400px;width:100%;text-align:center}
+.l-ico{font-size:42px;margin-bottom:8px}
+.l-t{font-size:17px;color:#d4af37;font-weight:bold;margin-bottom:2px}
+.l-s{font-size:11px;color:#555;margin-bottom:18px}
+.atabs{display:flex;border:1px solid #222;border-radius:8px;overflow:hidden;margin-bottom:17px}
+.atab{flex:1;padding:9px;background:transparent;color:#666;border:none;cursor:pointer;font-family:Georgia,serif;font-size:13px;transition:.2s}
+.atab.on{background:#d4af37;color:#000;font-weight:bold}
+.fg{margin-bottom:11px;text-align:left}
+.fl{font-size:10px;color:#d4af37;display:block;margin-bottom:4px;letter-spacing:.8px;text-transform:uppercase}
+.fi{width:100%;background:rgba(255,255,255,.05);border:1px solid #353555;border-radius:6px;padding:10px 12px;color:#f0e6c8;font-size:14px;outline:none;box-sizing:border-box;font-family:Georgia,serif;-webkit-appearance:none}
+.fi:focus{border-color:#d4af37}
+.btn-p{width:100%;background:#d4af37;color:#000;border:none;border-radius:8px;padding:11px;font-weight:bold;font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-top:4px}
+.btn-p:active{background:#b89020}
+.gbtn{width:100%;background:rgba(255,255,255,.04);color:#999;border:1px solid #2a2a2a;border-radius:8px;padding:10px;font-size:13px;cursor:pointer;font-family:Georgia,serif;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:7px}
+#aErr{color:#f07070;font-size:12px;margin-top:7px;display:none;text-align:center}
+.anote{font-size:10px;color:#363636;margin-top:10px;line-height:1.6}
+</style>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL  = "https://pseraeiwuavwdkegilsn.supabase.co";   
+const SUPABASE_ANON = "sb_publishable_nVFp51hF_BLK3VfLMEyHwg_OWNSJz5u"; 
+
+let _supabase = null;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  }
+  return _supabase;
+}
+
+function showErr(msg) {
+  const el = document.getElementById("aErr");
+  if (el) {
+    el.innerHTML = "⚠️ " + msg;
+    el.style.display = "block";
+  }
+}
+
+function clearErr() {
+  const el = document.getElementById("aErr");
+  if (el) {
+    el.textContent = "";
+    el.style.display = "none";
+  }
+}
+
+function authTab(type) {
+  clearErr();
+  if (type === 'li') {
+    document.getElementById("liF").style.display = "block";
+    document.getElementById("suF").style.display = "none";
+    document.getElementById("atli").classList.add("on");
+    document.getElementById("atsu").classList.remove("on");
+  } else {
+    document.getElementById("liF").style.display = "none";
+    document.getElementById("suF").style.display = "block";
+    document.getElementById("atsu").classList.add("on");
+    document.getElementById("atli").classList.remove("on");
+  }
+}
+
+function togglePw(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === "password") {
+    input.type = "text";
+    btn.textContent = "🙈";
+  } else {
+    input.type = "password";
+    btn.textContent = "👁";
+  }
+}
+
+async function doSignup() {
+  clearErr();
+  const username = document.getElementById("suU").value.trim();
+  const email = document.getElementById("suE").value.trim();
+  const password = document.getElementById("suP").value;
+
+  if (!username || !email || !password) {
+    showErr("Please fill in all fields.");
+    return;
+  }
+
+  if (password.length < 8) {
+    showErr("Password must be at least 8 characters.");
+    return;
+  }
+
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        full_name: username
+      }
+    }
+  });
+
+  if (error) {
+    showErr(error.message);
+    return;
+  }
+
+  if (data.user) {
+    alert("Signup successful! Check your email for verification if required, or log in.");
+    authTab('li');
+  }
+}
+
+async function doLogin() {
+  clearErr();
+  const email = document.getElementById("liE").value.trim();
+  const password = document.getElementById("liP").value;
+
+  if (!email || !password) {
+    showErr("Please enter both email and password.");
+    return;
+  }
+
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    showErr(error.message);
+    return;
+  }
+
+  if (data.session) {
+    document.getElementById("pgLog").classList.remove("on");
+    document.getElementById("pgHome").classList.add("on");
+    document.getElementById("topbar").style.display = "flex";
+  }
+}
+
+async function signInWithGoogle() {
+  clearErr();
+  const sb = getSupabase();
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error) {
+    showErr(error.message);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById("pgLog").classList.add("on");
+});
+</script>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="br">
+    <span style="font-size:18px">🚀</span>
+    <div>
+      <div class="bname">BestITFriend<span>OnlineSales</span></div>
+      <div class="btag">· ENTERPRISES ·</div>
+    </div>
+  </div>
+</div>
+
+<div id="pgLog" class="pg">
+  <div class="lbox">
+    <div class="l-ico">🚀</div>
+    <div class="l-t">BestITFriend OnlineSales</div>
+    <div class="l-s">Your Digital Marketplace &amp; Notes Platform</div>
+    <div class="atabs">
+      <button class="atab on" id="atli" onclick="authTab('li')">Login</button>
+      <button class="atab" id="atsu" onclick="authTab('su')">Sign Up</button>
+    </div>
+    
+    <div id="liF">
+      <div class="fg">
+        <label class="fl">Email</label>
+        <input class="fi" id="liE" type="email" placeholder="your@email.com">
+      </div>
+      <div class="fg">
+        <label class="fl">Password</label>
+        <div class="pw-wrap">
+          <input class="fi" id="liP" type="password" placeholder="Your password">
+          <button class="pw-eye" type="button" onclick="togglePw('liP',this)">👁</button>
+        </div>
+      </div>
+      <button class="btn-p" onclick="doLogin()">🔓 Login</button>
+    </div>
+    
+    <div id="suF" style="display:none">
+      <div class="fg">
+        <label class="fl">Username</label>
+        <input class="fi" id="suU" type="text" placeholder="Choose a username">
+      </div>
+      <div class="fg">
+        <label class="fl">Email</label>
+        <input class="fi" id="suE" type="email" placeholder="your@email.com">
+      </div>
+      <div class="fg">
+        <label class="fl">Password (min 8 chars)</label>
+        <div class="pw-wrap">
+          <input class="fi" id="suP" type="password" placeholder="At least 8 characters">
+          <button class="pw-eye" type="button" onclick="togglePw('suP',this)">👁</button>
+        </div>
+      </div>
+      <button class="btn-p" onclick="doSignup()">🚀 Create Account</button>
+    </div>
+    
+    <div id="aErr"></div>
+    
+    <button class="gbtn" onclick="signInWithGoogle()">
+      Continue with Google
+    </button>
+  </div>
+</div>
+
+<div id="pgHome" class="pg">
+  <div style="padding: 20px; text-align: center;">
+    <h1>Welcome to BestITFriend Online Sales</h1>
+    <p>You are logged in.</p>
+  </div>
+</div>
+
+</body>
+</html>
