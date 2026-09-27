@@ -1122,18 +1122,65 @@ async function doSignup() {
     }
   }
 }
-async function doLogin(){
-  var ev=(document.getElementById("liE").value||"").trim();
-  var pw=(document.getElementById("liP").value||"").trim();
-  clearAe();
-  if(!ev)return ae("Please enter your email or username.");
-  if(!pw)return ae("Please enter your password.");
-  try{
-    var r=await apiFetch("/api/auth/login",{method:"POST",body:{identifier:ev,password:pw}});
-    if(!r||!r.user)return ae("Wrong email/username or password.");
-    setAuth(r.token||"",r.user.email);
-    ST.user=TABLES.users.fromApi(r.user);ST.isAdm=(ST.user.username===CFG.au)||!!r.user.is_admin;afterAuth();
-  }catch(e){ae("Wrong email/username or password.");}
+async function doLogin() {
+  // Clear any existing error message
+  const errEl = document.getElementById("aErr");
+  if (errEl) {
+    errEl.textContent = "";
+    errEl.style.display = "none";
+  }
+
+  const emailInput = document.getElementById("liE");
+  const passwordInput = document.getElementById("liP");
+
+  const email = emailInput ? emailInput.value.trim() : "";
+  const password = passwordInput ? passwordInput.value : "";
+
+  if (!email || !password) {
+    if (errEl) {
+      errEl.innerHTML = "⚠️ Please enter both email and password.";
+      errEl.style.display = "block";
+    }
+    return;
+  }
+
+  try {
+    const sb = getSupabase();
+    if (!sb) {
+      if (errEl) {
+        errEl.innerHTML = "⚠️ Supabase client failed to initialize.";
+        errEl.style.display = "block";
+      }
+      return;
+    }
+
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      if (errEl) {
+        errEl.innerHTML = "⚠️ " + error.message;
+        errEl.style.display = "block";
+      }
+      return;
+    }
+
+    if (data?.session) {
+      // Hide login page and show main application page
+      document.getElementById("pgLog")?.classList.remove("on");
+      document.getElementById("pgHome")?.classList.add("on");
+      const topbar = document.getElementById("topbar");
+      if (topbar) topbar.style.display = "flex";
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    if (errEl) {
+      errEl.innerHTML = "⚠️ An unexpected error occurred: " + (err.message || err);
+      errEl.style.display = "block";
+    }
+  }
 }
 function apiChangePassword(newPw){
   if(!ST.user)return Promise.resolve();
