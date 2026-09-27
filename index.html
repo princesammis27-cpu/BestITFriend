@@ -1033,20 +1033,42 @@ function startPing(){if(ST.ptimer)clearInterval(ST.ptimer);ST.ptimer=setInterval
 // argon2) — per schema.sql's note, the old client-side DJB2 hash below is
 // NOT carried over; it's only ever safe for a purely local, single-device
 // store, not once accounts live in a shared database.
-async function doSignup(){
-  var u=(document.getElementById("suU").value||"").trim();
-  var em=(document.getElementById("suE").value||"").trim();
-  var pw=(document.getElementById("suP").value||"").trim();
-  clearAe();
-  if(!u)return ae("Please enter a username.");
-  if(!em||!em.includes("@"))return ae("Please enter a valid email.");
-  if(pw.length<8)return ae("Password must be at least 8 characters.");
-  try{
-    var r=await apiFetch("/api/auth/signup",{method:"POST",body:{username:u,email:em,password:pw}});
-    if(!r||!r.user)return ae("Signup failed. Please try again.");
-    setAuth(r.token||"",em);
-    ST.user=TABLES.users.fromApi(r.user);ST.isAdm=(u===CFG.au)||!!r.user.is_admin;afterAuth();
-  }catch(e){ae(e.status===409?"Email already registered. Please login.":"Signup failed. Please try again.");}
+async function doSignup() {
+  clearErr();
+  const username = document.getElementById("suU").value.trim();
+  const email = document.getElementById("suE").value.trim();
+  const password = document.getElementById("suP").value;
+
+  if (!username || !email || !password) {
+    showErr("Please fill in all fields.");
+    return;
+  }
+
+  if (password.length < 8) {
+    showErr("Password must be at least 8 characters.");
+    return;
+  }
+
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        full_name: username
+      }
+    }
+  });
+
+  if (error) {
+    showErr(error.message);
+    return;
+  }
+
+  if (data.user) {
+    alert("Signup successful! Check your email for verification if required, or log in.");
+    authTab('li');
+  }
 }
 async function doLogin(){
   var ev=(document.getElementById("liE").value||"").trim();
