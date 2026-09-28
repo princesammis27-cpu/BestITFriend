@@ -1,0 +1,22 @@
+{
+  "name": "bestitfriend-online-sales-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Netlify Functions + Supabase backend for BestITFriend Online Sales",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "netlify dev",
+    "check": "node --check netlify/functions/api.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
