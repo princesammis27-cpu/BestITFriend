@@ -1,0 +1,13 @@
+{
+    "name": "bestitfriend/online-sales-backend",
+    "description": "Plain PHP + PostgreSQL backend for BestITFriend Online Sales",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "ext-pdo": "*",
+        "ext-pdo_pgsql": "*",
+        "ext-curl": "*",
+        "firebase/php-jwt": "^6.10",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
